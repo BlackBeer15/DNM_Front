@@ -20,22 +20,22 @@ const Graph = ({data}) => {
         
             // Обновляем связи, заменяя id на объекты узлов
             links.forEach(link => {
-            link.source = nodeById.get(link.source);
-            link.target = nodeById.get(link.target);
+                link.source = nodeById.get(link.source);
+                link.target = nodeById.get(link.target);
             });
         
             // Функция проверки связи между узлами
             const isConnected = (a, b) => 
-            links.some(l => (l.source === a && l.target === b) || (l.source === b && l.target === a));
+                links.some(l => (l.source === a && l.target === b) || (l.source === b && l.target === a));
 
             // Группировка узлов
             const groups = Array.from(d3.group(nodes, d => d.group), ([key, nodes]) => ({
-            key,
-            name: nodes[0].nameGroup,
-            nodes,
-            radius: Math.max(100, Math.sqrt(nodes.length) * minDistance / 2),
-            cx: 0,
-            cy: 0
+                key,
+                name: nodes[0].nameGroup,
+                nodes,
+                radius: Math.max(100, Math.sqrt(nodes.length) * minDistance / 2),
+                cx: 0,
+                cy: 0
             }));
 
             // Расположение групп в гриде
@@ -45,23 +45,23 @@ const Graph = ({data}) => {
             const gridSize = margin * 4;
         
             groups.forEach((group, i) => {
-            const x = (i % columns) * gridSize + margin;
-            const y = Math.floor(i / columns) * gridSize + margin;
-            group.cx = x;
-            group.cy = y;
+                const x = (i % columns) * gridSize + margin;
+                const y = Math.floor(i / columns) * gridSize + margin;
+                group.cx = x;
+                group.cy = y;
             });
-        
+
             // Распределение узлов внутри групп по спирали
             groups.forEach(group => {
-            const nodesCount = group.nodes.length;
-            const radiusStep = group.radius / Math.sqrt(nodesCount);
+                const nodesCount = group.nodes.length;
+                const radiusStep = group.radius / Math.sqrt(nodesCount);
             
-            group.nodes.forEach((node, i) => {
-                const angle = i * (137.508 * Math.PI / 180);
-                const radius = Math.sqrt(i) * radiusStep;
-                node.x = group.cx + Math.cos(angle) * radius;
-                node.y = group.cy + Math.sin(angle) * radius;
-            });
+                group.nodes.forEach((node, i) => {
+                    const angle = i * (137.508 * Math.PI / 180);
+                    const radius = Math.sqrt(i) * radiusStep;
+                    node.x = group.cx + Math.cos(angle) * radius;
+                    node.y = group.cy + Math.sin(angle) * radius;
+                });
             });
         
             const svg = d3.create("svg")
@@ -71,15 +71,16 @@ const Graph = ({data}) => {
                 .on("zoom", (event) => zoomGroup.attr("transform", event.transform));
             
             svg.call(zoom);
+
             const zoomGroup = svg.append("g");
         
             // Отрисовка связей
             const link = zoomGroup.append("g")
                 .attr("stroke", "#999")
                 .attr("stroke-opacity", 0.6)
-            .selectAll("line")
-            .data(links)
-            .join("line")
+                .selectAll("line")
+                .data(links)
+                .join("line")
                 .attr("stroke-width", d => Math.sqrt(d.value))
                 .attr("x1", d => d.source.x)
                 .attr("y1", d => d.source.y)
@@ -120,25 +121,26 @@ const Graph = ({data}) => {
         
             // Отрисовка узлов с подсветкой
             const node = zoomGroup.append("g")
-                
-            .selectAll(".node")
-            .data(nodes)
-            .join("g")
+                .selectAll(".node")
+                .data(nodes)
+                .join("g")
                 .attr("class", "node")
                 .attr("transform", d => `translate(${d.x},${d.y})`)
+
                 .on("mouseover", function(event, d) {
                 // Подсветка связей
-                zoomGroup.selectAll("line")
-                    .filter(l => l.source === d || l.target === d)
-                    .attr("stroke", "#005ab9")
-                    .attr("stroke-opacity", 1);
+                    zoomGroup.selectAll("line")
+                        .filter(l => l.source === d || l.target === d)
+                        .attr("stroke", "#005ab9")
+                        .attr("stroke-opacity", 1);
         
                 // Затемнение не связанных узлов
-                zoomGroup.selectAll(".node")
-                    .style("opacity", o => 
-                    o === d || isConnected(d, o) ? 1 : 0.1
+                    zoomGroup.selectAll(".node")
+                        .style("opacity", o => 
+                        o === d || isConnected(d, o) ? 1 : 0.1
                     );
                 })
+
                 .on("mouseout", function(event, d) {
                     // Сброс связей
                     zoomGroup.selectAll("line")
@@ -149,7 +151,53 @@ const Graph = ({data}) => {
                     // Сброс прозрачности узлов
                     zoomGroup.selectAll(".node")
                         .style("opacity", 1);
+                })
+
+                .on("click", function (event, d) {
+                    event.stopPropagation();
+                
+                    // Удаляем предыдущий тултип
+                    zoomGroup.selectAll(".node-tooltip").remove();
+                
+                    // Получаем текущее преобразование зума
+                    const transform = d3.zoomTransform(zoomGroup.node());
+                
+                    // Преобразуем координаты клика в пространство SVG
+                    const [x, y] = d3.pointer(event, svg.node());
+                    const transformedX = transform.invertX(x);
+                    const transformedY = transform.invertY(y);
+                
+                    // Создаем контейнер для тултипа
+                    const tooltip = zoomGroup.append("foreignObject")
+                        .attr("class", "node-tooltip")
+                        .attr("x", transformedX + 10)
+                        .attr("y", transformedY + 10)
+                        .html(`
+                            <div xmlns="http://www.w3.org/1999/xhtml" class="tooltip-content">
+                                <h3>${d.label}</h3>
+                                <p><b>Хост:</b> ${d.nameGroup}</p>
+                                <p><b>Статус:</b> ${d.status}</p>
+                            </div>
+                        `);
+                
+                    // Даем браузеру время на рендеринг
+                    setTimeout(() => {
+                        const div = tooltip.select('div.tooltip-content').node();
+                        if (!div) return;
+                
+                        const styles = window.getComputedStyle(div);
+                        const paddingX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+                        const paddingY = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+                        const width = div.scrollWidth + paddingX + 40;
+                        const height = div.scrollHeight + paddingY + 40;
+                
+                        tooltip
+                            .attr('width', width)
+                            .attr('height', height)
+                            .classed("show", true);
+                    }, 0);
                 });
+                
         
             node.append("circle")
                 .attr("r", 10)
@@ -161,6 +209,10 @@ const Graph = ({data}) => {
                 .text(d => d.label)
                 .style("font-size", "12px")
                 .style("fill", "#000");
+
+            svg.on("click", () => {
+                zoomGroup.selectAll(".node-tooltip").remove();
+            });
 
             ref.current.appendChild(svg.node());
     }, [data]);

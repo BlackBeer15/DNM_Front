@@ -27,3 +27,15 @@
     font-weight: 600;
     color: #fff;
 }
+
+circle {
+    cursor: pointer;
+}
+
+.tooltip-content {
+    padding: 20px; /* Увеличенные отступы */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}

@@ -30,7 +30,7 @@ const ContainerMap = () => {
             links: linksData.map(link => ({
                 source: link.sourceID,
                 target: link.targetID,
-                value: 1 // Можно использовать link.netID как идентификатор
+                value: 5
             }))
             };
 
@@ -51,7 +51,7 @@ const ContainerMap = () => {
 
     return (
         <div className="container-map-wrapper">
-            <Graph data={data} /> 
+            <Graph data={data} />
         </div>
     );
 }
