@@ -31,6 +31,7 @@ const Graph = ({data}) => {
             // Группировка узлов
             const groups = Array.from(d3.group(nodes, d => d.group), ([key, nodes]) => ({
             key,
+            name: nodes[0].nameGroup,
             nodes,
             radius: Math.max(100, Math.sqrt(nodes.length) * minDistance / 2),
             cx: 0,
@@ -41,7 +42,7 @@ const Graph = ({data}) => {
             const columns = Math.ceil(Math.sqrt(groups.length));
             const maxRadius = d3.max(groups, d => d.radius);
             const margin = maxRadius * 1;
-            const gridSize = margin * 2;
+            const gridSize = margin * 4;
         
             groups.forEach((group, i) => {
             const x = (i % columns) * gridSize + margin;
@@ -109,8 +110,8 @@ const Graph = ({data}) => {
                 .attr("class", "group-label")
                 .attr("x", d => d.cx)
                 .attr("y", d => d.cy)
-                .attr("dy", d => d.radius + 20)
-                .text(d => d.key)
+                .attr("dy", d => d.radius + 25)
+                .text(d => d.name)
                 .style("font-size", "20px")
                 .style("fill", "#000")
                 .style("font-weight", "bold")
@@ -119,8 +120,7 @@ const Graph = ({data}) => {
         
             // Отрисовка узлов с подсветкой
             const node = zoomGroup.append("g")
-                .attr("stroke", "#000")
-                .attr("stroke-width", 1)
+                
             .selectAll(".node")
             .data(nodes)
             .join("g")
@@ -160,7 +160,7 @@ const Graph = ({data}) => {
                 .attr("dy", "4px") 
                 .text(d => d.label)
                 .style("font-size", "12px")
-                .style("fill", "#fff");
+                .style("fill", "#000");
 
             ref.current.appendChild(svg.node());
     }, [data]);

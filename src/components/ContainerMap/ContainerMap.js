@@ -46,8 +46,8 @@ const ContainerMap = () => {
         fetchData();
     }, []);
 
-    if (isLoading) return <div>Загрузка...</div>;
-    if (error) return <div>{error}</div>;
+    if (isLoading) return <div className="loader">Загрузка...</div>;
+    if (error) return <div className="error">{error}</div>;
 
     return (
         <div className="container-map-wrapper">
